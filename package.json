@@ -1,9 +1,9 @@
 {
   "name": "fb-messenger-gpt-sextoy-bot",
   "version": "1.0.0",
-  "description": "Messenger bot s? d?ng OpenAI",
-  "main": "server.js",
+  "description": "Messenger bot sử dụng OpenAI",
   "type": "module",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
@@ -11,12 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/Nvcloud-commits/fb-messenger-gpt-sextoy-bot.git"
   },
-  "keywords": [
-    "messenger",
-    "bot",
-    "openai",
-    "pm2"
-  ],
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -28,5 +23,6 @@
     "body-parser": "^1.20.2",
     "dotenv": "^17.0.0",
     "openai": "^4.0.0"
-  }
+  },
+  "type": "module"
 }
