@@ -1,63 +1,59 @@
-// ==============================
-// Load biến môi trường từ .env
-// ==============================
+/**
+ * FB Messenger GPT Bot - Phiên bản chuẩn UTF-8
+ * Author: Dave (ChatGPT)
+ */
+
 require('dotenv').config();
-
 const express = require('express');
+const bodyParser = require('body-parser');
+const axios = require('axios');
+const { Configuration, OpenAIApi } = require('openai');
+
 const app = express();
+const port = process.env.PORT || 3000;
 
-// ==============================
-// Đọc PORT từ .env hoặc mặc định 3000
-// ==============================
-const PORT = process.env.PORT || 3000;
+// Middleware
+app.use(bodyParser.json());
 
-app.use(express.json());
+// Cấu hình OpenAI
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
-// ==============================
-// Xác minh Webhook (GET)
-// ==============================
-app.get('/webhook', (req, res) => {
-  console.log('🔥 Verify request received:');
-  console.log(req.query);
+// Test route: Gửi câu hỏi và nhận câu trả lời tiếng Việt
+app.post('/chat', async (req, res) => {
+  try {
+    const userMessage = req.body.message || 'Xin chào!';
 
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: `Bạn là một chatbot trả lời bằng tiếng Việt, giọng điệu tự nhiên, lịch sự, gọi khách là "chị yêu" nếu là khách hàng nữ.`
+        },
+        {
+          role: 'user',
+          content: userMessage
+        }
+      ],
+    });
 
-  console.log('MODE:', mode);
-  console.log('TOKEN:', token);
-  console.log('EXPECTED TOKEN:', process.env.VERIFY_TOKEN);
-  console.log('CHALLENGE:', challenge);
+    const reply = completion.data.choices[0].message.content;
+    res.json({ reply });
 
-  if (mode && token) {
-    if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
-      console.log('✅ Webhook verified!');
-      res.status(200).send(challenge);
-    } else {
-      console.log('❌ Webhook verification failed.');
-      res.sendStatus(403);
-    }
-  } else {
-    console.log('⚠️ Missing mode or token.');
-    res.sendStatus(400);
+  } catch (error) {
+    console.error(error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Đã có lỗi xảy ra.' });
   }
 });
 
-// ==============================
-// Nhận message từ Facebook (POST)
-// ==============================
-app.post('/webhook', (req, res) => {
-  console.log('📥 Received webhook POST:');
-  console.log(JSON.stringify(req.body, null, 2));
-
-  // TODO: Xử lý payload ở đây (sau này gọi OpenAI)
-
-  res.sendStatus(200);
+// Route test đơn giản
+app.get('/', (req, res) => {
+  res.send('Bot FB Messenger GPT chạy OK.');
 });
 
-// ==============================
-// Start server
-// ==============================
-app.listen(PORT, () => {
-  console.log(`🚀 Webhook server is listening on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`✅ Server đang chạy tại http://localhost:${port}`);
 });
