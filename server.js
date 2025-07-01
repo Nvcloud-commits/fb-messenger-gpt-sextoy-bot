@@ -1,4 +1,4 @@
-// server.js (ES Module)
+// server.js (ES Module chuẩn)
 
 import dotenv from 'dotenv';
 import express from 'express';
@@ -17,7 +17,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// ✅ Route test POST /chat
+// ------------------------------
+// Route test /chat (API nội bộ)
+// ------------------------------
 app.post('/chat', async (req, res) => {
   try {
     const userMessage = req.body.message || 'Xin chào!';
@@ -30,7 +32,8 @@ app.post('/chat', async (req, res) => {
     });
 
     const reply = completion.choices[0].message.content;
-    console.log('💬 User:', userMessage);
+
+    console.log('💬 USER:', userMessage);
     console.log('🤖 GPT:', reply);
 
     res.json({ reply });
@@ -40,9 +43,12 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-// ✅ Route webhook Facebook Messenger
+// ------------------------------
+// Facebook Webhook Verify (GET)
+// ------------------------------
 app.get('/webhook', (req, res) => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
@@ -57,6 +63,9 @@ app.get('/webhook', (req, res) => {
   }
 });
 
+// ------------------------------
+// Facebook Webhook Receive (POST)
+// ------------------------------
 app.post('/webhook', async (req, res) => {
   const body = req.body;
 
@@ -79,11 +88,10 @@ app.post('/webhook', async (req, res) => {
 
           const reply = completion.choices[0].message.content;
 
-          // Gửi lại tin nhắn cho user
           await callSendAPI(sender_psid, reply);
-          console.log('💬 User:', userMessage);
-          console.log('🤖 GPT:', reply);
 
+          console.log('💬 USER:', userMessage);
+          console.log('🤖 GPT:', reply);
         } catch (error) {
           console.error('❌ Lỗi GPT:', error.response?.data || error.message);
         }
@@ -96,6 +104,9 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
+// ------------------------------
+// Hàm Gửi Tin Nhắn Lại FB
+// ------------------------------
 async function callSendAPI(sender_psid, response) {
   const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
@@ -108,7 +119,15 @@ async function callSendAPI(sender_psid, response) {
     }
   };
 
-  await axios.post(`https://graph.facebook.com/v17.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, request_body);
+  try {
+    await axios.post(
+      `https://graph.facebook.com/v17.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
+      request_body
+    );
+    console.log('✅ Tin nhắn đã gửi FB API thành công.');
+  } catch (error) {
+    console.error('❌ Lỗi gửi tin nhắn FB API:', error.response?.data || error.message);
+  }
 }
 
 app.listen(port, () => {
