@@ -1,7 +1,7 @@
-import OpenAI from "openai";
-import express from "express";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
+import express from 'express';
+import bodyParser from 'body-parser';
+import OpenAI from 'openai';
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 app.post('/chat', async (req, res) => {
@@ -22,14 +22,14 @@ app.post('/chat', async (req, res) => {
       messages: [
         { role: "system", content: "Bạn là trợ lý chatbot." },
         { role: "user", content: userMessage }
-      ],
+      ]
     });
 
     const reply = completion.choices[0].message.content;
     res.json({ reply });
   } catch (error) {
     console.error('Lỗi:', error);
-    res.status(500).send('Lỗi máy chủ!');
+    res.status(500).send('Lỗi máy chủ');
   }
 });
 
