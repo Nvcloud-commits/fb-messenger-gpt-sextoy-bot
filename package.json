@@ -1,10 +1,15 @@
 {
   "name": "fb-messenger-gpt-sextoy-bot",
   "version": "1.0.0",
-  "description": "",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "express": "^4.19.0",
+    "dotenv": "^17.1.0",
+    "axios": "^1.0.0",
+    "openai": "^5.8.3"
+  }
 }
