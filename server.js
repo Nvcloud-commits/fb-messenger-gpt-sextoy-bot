@@ -38,7 +38,7 @@ Bạn phải phân tích tin nhắn của người dùng và trả lời bằng 
   },
   "reply": "<câu_trả_lời_cho_khách_hàng>"
 }
-...`;
+...`
 📌 **CÁC LOẠI Ý ĐỊNH (\`intent\`):**
 -   \`tu_van_san_pham\`: Khách hàng hỏi về thông tin, tính năng, cách dùng sản phẩm.
 -   \`cung_cap_thong_tin\`: Khách hàng cung cấp số điện thoại hoặc địa chỉ.
