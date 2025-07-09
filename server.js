@@ -1,11 +1,10 @@
 // server.js
-
-import express from 'express';
-import dotenv from 'dotenv';
-import axios from 'axios';
-import OpenAI from 'openai';
-import { updateCustomer, getCustomer, resetFollowUpState } from './db.js';
-import { sendDiscordNotification } from './notify.js';
+const express = require('express');
+const dotenv = require('dotenv');
+const axios = require('axios');
+const OpenAI = require('openai');
+const { updateCustomer, getCustomer, resetFollowUpState } = require('./db.js');
+const { sendDiscordNotification } = require('./notify.js');
 
 // --- KHỞI TẠO VÀ CẤU HÌNH ---
 dotenv.config();
