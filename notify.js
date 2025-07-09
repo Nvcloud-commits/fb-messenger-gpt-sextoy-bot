@@ -1,47 +1,26 @@
 // notify.js
-
 const axios = require('axios');
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config();
 
-export async function sendDiscordNotification(customer) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL_TAB1;
-  if (!webhookUrl) {
-    console.warn('[Discord] Biến DISCORD_WEBHOOK_URL_TAB1 chưa được thiết lập. Bỏ qua thông báo.');
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+
+async function sendDiscordNotification(customer) {
+  if (!DISCORD_WEBHOOK_URL) {
+    console.error('[NOTIFY] ❌ DISCORD_WEBHOOK_URL chưa được cấu hình trong file .env');
     return;
   }
 
-  // Sử dụng Discord Embeds để tin nhắn đẹp hơn
-  const embed = {
-    color: 0x00ff00, // Màu xanh lá
-    title: '🎉 ĐƠN HÀNG MỚI TỪ MESSENGER 🎉',
-    description: 'Một đơn hàng mới đã có đủ thông tin. Vui lòng kiểm tra và xác nhận!',
-    fields: [
-      {
-        name: '👤 Khách hàng (PSID)',
-        value: `\`${customer.psid}\``,
-        inline: false,
-      },
-      {
-        name: '📞 Số điện thoại',
-        value: `\`${customer.phone}\``,
-        inline: true,
-      },
-      {
-        name: '🏠 Địa chỉ',
-        value: `\`${customer.diachi}\``,
-        inline: true,
-      },
-    ],
-    timestamp: new Date().toISOString(),
-    footer: {
-      text: 'Hệ thống Chatbot Bán hàng',
-    },
+  const message = {
+    content: `📌 Có đơn hàng mới!\n🧑‍💼 PSID: ${customer.psid}\n📞 Phone: ${customer.phone || 'Chưa có'}\n🏠 Địa chỉ: ${customer.diachi || 'Chưa có'}\n⏰ Cập nhật: ${customer.updatedAt}`
   };
 
   try {
-    await axios.post(webhookUrl, { embeds: [embed] });
-    console.log(`[Discord] ✅ Gửi thông báo đơn hàng của ${customer.psid} thành công.`);
+    await axios.post(DISCORD_WEBHOOK_URL, message);
+    console.log(`[NOTIFY] ✅ Gửi thông báo Discord thành công cho ${customer.psid}`);
   } catch (err) {
-    console.error('❌ Lỗi gửi thông báo Discord:', err.response?.data || err.message);
+    console.error('[NOTIFY] ❌ Lỗi gửi Discord:', err.response?.data || err.message);
   }
 }
+
+module.exports = { sendDiscordNotification };
