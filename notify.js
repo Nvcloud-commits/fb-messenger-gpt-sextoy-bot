@@ -1,8 +1,7 @@
 // notify.js
 
-import axios from 'axios';
-import dotenv from 'dotenv';
-dotenv.config();
+const axios = require('axios');
+require('dotenv').config();
 
 export async function sendDiscordNotification(customer) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL_TAB1;
