@@ -144,6 +144,6 @@ app.post('/webhook', (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`✅ Server đang chạy tại http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on PORT ${PORT}`);
 });
