@@ -6,9 +6,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const FOLLOWUP_INTERVAL_1_HOURS = 2;   // Gửi lần 1 sau 2 giờ
-const FOLLOWUP_INTERVAL_2_HOURS = 12;  // Gửi lần 2 sau 12 giờ kể từ lần 1
-const CRON_RUN_INTERVAL_MINUTES = 5;   // Chạy cron mỗi 5 phút
+const FOLLOWUP_INTERVAL_1_HOURS = 2;  // Gửi lần 1 sau 2 giờ
+const FOLLOWUP_INTERVAL_2_HOURS = 12; // Gửi lần 2 sau 12 giờ kể từ lần 1
+const CRON_RUN_INTERVAL_MINUTES = 5;  // Chạy cron mỗi 5 phút
 
 async function sendFollowUp(psid, message) {
   try {
@@ -27,12 +27,13 @@ async function sendFollowUp(psid, message) {
 }
 
 function hoursSince(dateString) {
+  if (!dateString) return Infinity; // THÊM: nếu updatedAt null thì luôn tính là quá hạn
   const diff = Date.now() - new Date(dateString).getTime();
   return diff / (1000 * 60 * 60);
 }
 
 async function checkAndSendFollowUps() {
-  console.log('[CRON] 🔍 Bắt đầu quét khách hàng cần follow-up...');
+  console.log('[CRON] Bắt đầu quét khách hàng cần follow-up...');
   const allCustomers = getAllCustomers();
 
   for (const psid in allCustomers) {
@@ -40,17 +41,19 @@ async function checkAndSendFollowUps() {
     const timeSinceUpdate = hoursSince(customer.updatedAt);
 
     if (customer.status === 'pending_info' && timeSinceUpdate >= FOLLOWUP_INTERVAL_1_HOURS) {
-      await sendFollowUp(psid, 'Dạ em thấy anh/chị vẫn đang quan tâm, nếu cần em sẵn sàng hỗ trợ thêm ạ!');
+      await sendFollowUp(psid, "Dạ em thấy anh/chị vẫn đang quan tâm, nếu cần em sẵn sàng hỗ trợ thêm ạ!");
       await updateCustomer(psid, { status: 'followup_1' });
     } else if (customer.status === 'followup_1' && timeSinceUpdate >= FOLLOWUP_INTERVAL_2_HOURS) {
-      await sendFollowUp(psid, 'Dạ em chào anh/chị, em xin phép nhắc nhẹ ạ. Nếu anh/chị còn quan tâm sản phẩm bên em, đừng ngại nhắn em tư vấn thêm nha! ❤️');
+      await sendFollowUp(psid, "Dạ em xin phép nhắc nhẹ, nếu anh/chị còn quan tâm sản phẩm bên em, đừng ngại nhắn em tư vấn thêm nha! ❤️");
       await updateCustomer(psid, { status: 'followup_2' });
     }
   }
-  console.log('[CRON] ✅ Quét xong.');
+
+  console.log('[CRON] Quét xong.');
 }
 
-// --- CHẠY NGAY ---
-console.log(`[CRON] 🚀 Follow-up service khởi chạy. Lặp lại mỗi ${CRON_RUN_INTERVAL_MINUTES} phút.`);
+console.log(`[CRON] Service bắt đầu. Sẽ chạy mỗi ${CRON_RUN_INTERVAL_MINUTES} phút.`);
 setInterval(checkAndSendFollowUps, CRON_RUN_INTERVAL_MINUTES * 60 * 1000);
+
+// Chạy ngay lần đầu
 checkAndSendFollowUps();
