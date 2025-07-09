@@ -1,14 +1,12 @@
-// scripts/cron-check.js
-
 const { getAllCustomers, updateCustomer } = require('../db.js');
 const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const FOLLOWUP_INTERVAL_1_HOURS = 2;  // Gửi lần 1 sau 2 giờ
-const FOLLOWUP_INTERVAL_2_HOURS = 12; // Gửi lần 2 sau 12 giờ kể từ lần 1
-const CRON_RUN_INTERVAL_MINUTES = 5;  // Chạy cron mỗi 5 phút
+const FOLLOWUP_INTERVAL_1_HOURS = 2;
+const FOLLOWUP_INTERVAL_2_HOURS = 12;
+const CRON_RUN_INTERVAL_MINUTES = 5;
 
 async function sendFollowUp(psid, message) {
   try {
@@ -16,24 +14,20 @@ async function sendFollowUp(psid, message) {
       recipient: { id: psid },
       message: { text: message }
     };
-    await axios.post(
-      `https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
-      request_body
-    );
-    console.log(`[CRON] ✅ Follow-up đã gửi cho ${psid}`);
-  } catch (error) {
-    console.error(`[CRON] ❌ Lỗi gửi follow-up cho ${psid}:`, error.response?.data || error.message);
+    await axios.post(`https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, request_body);
+    console.log(`[CRON] ✅ Gửi follow-up cho ${psid}`);
+  } catch (err) {
+    console.error(`[CRON] ❌ Lỗi gửi follow-up cho ${psid}:`, err.response?.data || err.message);
   }
 }
 
 function hoursSince(dateString) {
-  if (!dateString) return Infinity; // THÊM: nếu updatedAt null thì luôn tính là quá hạn
   const diff = Date.now() - new Date(dateString).getTime();
   return diff / (1000 * 60 * 60);
 }
 
 async function checkAndSendFollowUps() {
-  console.log('[CRON] Bắt đầu quét khách hàng cần follow-up...');
+  console.log('[CRON] Bắt đầu quét...');
   const allCustomers = getAllCustomers();
 
   for (const psid in allCustomers) {
@@ -41,19 +35,16 @@ async function checkAndSendFollowUps() {
     const timeSinceUpdate = hoursSince(customer.updatedAt);
 
     if (customer.status === 'pending_info' && timeSinceUpdate >= FOLLOWUP_INTERVAL_1_HOURS) {
-      await sendFollowUp(psid, "Dạ em thấy anh/chị vẫn đang quan tâm, nếu cần em sẵn sàng hỗ trợ thêm ạ!");
+      await sendFollowUp(psid, "Dạ em thấy anh/chị vẫn quan tâm, cần hỗ trợ thêm gì không ạ?");
       await updateCustomer(psid, { status: 'followup_1' });
     } else if (customer.status === 'followup_1' && timeSinceUpdate >= FOLLOWUP_INTERVAL_2_HOURS) {
-      await sendFollowUp(psid, "Dạ em xin phép nhắc nhẹ, nếu anh/chị còn quan tâm sản phẩm bên em, đừng ngại nhắn em tư vấn thêm nha! ❤️");
+      await sendFollowUp(psid, "Dạ em nhắc nhẹ anh/chị ạ, nếu còn cần tư vấn cứ nhắn em nhé!");
       await updateCustomer(psid, { status: 'followup_2' });
     }
   }
-
-  console.log('[CRON] Quét xong.');
+  console.log('[CRON] ✅ Quét xong.');
 }
 
-console.log(`[CRON] Service bắt đầu. Sẽ chạy mỗi ${CRON_RUN_INTERVAL_MINUTES} phút.`);
+console.log(`[CRON] Service khởi chạy. Sẽ chạy mỗi ${CRON_RUN_INTERVAL_MINUTES} phút.`);
 setInterval(checkAndSendFollowUps, CRON_RUN_INTERVAL_MINUTES * 60 * 1000);
-
-// Chạy ngay lần đầu
 checkAndSendFollowUps();
